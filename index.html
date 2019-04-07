@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Canon Canvas</title>
+	<script src="brick.js"></script>
+	<script src="map.js"></script>
+	<script src="cannon.js"></script>
+	<script src="ball.js"></script>
+	<script>
+		var _canvas;
+		var _context;
+		var _cannon;
+		var _map;
+		var updateInterval;
+		var end = false;
+		var timeStart;
+		 
+		function clear() {
+			_context.clearRect(0, 0, _canvas.width, _canvas.height);
+		}
+		 
+		function init(ballSpeed) {
+			_canvas = document.getElementById("canvas");
+			_context = _canvas.getContext("2d");
+		
+			_map = new Map(_canvas.width, _canvas.height);
+			_cannon = new Cannon(_canvas.width, _canvas.height, 0, 225, ballSpeed);
+			timeStart = new Date().valueOf();
+			draw();
+		}
+
+		function draw() {
+			clear();
+			_map.draw(_context);
+			_cannon.draw(_context);
+		}
+
+		function update() {
+			if(_map && _map.bricks.length === 0) {
+				window.clearInterval(updateInterval);
+				end = true;
+				document.getElementById("time").innerText = new Date().valueOf() - timeStart;
+				document.getElementById("endScreen").style.display = "flex";
+			}
+
+			if(!end) {
+				_cannon.update(_map);
+				draw();
+			}
+		}
+		
+		function canvas_mousemove(e){
+			var x = e.pageX - _canvas.offsetLeft;
+			var y = e.pageY - _canvas.offsetTop;
+			_cannon.rotate(x,y);
+		}
+		
+		function canvas_mousedown(e){
+			var x = e.pageX - _canvas.offsetLeft;
+			var y = e.pageY - _canvas.offsetTop;
+			_cannon.fire(x,y);
+		}
+		 
+		window.onload = function(){
+			document.getElementById("btnStart").addEventListener("click", function() {
+				this.style.display = "none";
+
+				const ballSpeed = prompt("Input cannon ball speed: ", 400);
+
+				init(ballSpeed);
+				_canvas.onmousemove = canvas_mousemove;
+				_canvas.onmousedown = canvas_mousedown;
+			
+				updateInterval = window.setInterval(update, 0);
+			})
+		}
+	</script>
+</head>
+<body>
+	<div style="text-align:center; position: relative;">
+		<canvas id="canvas" tabindex="0" width="600px" height="450px" style="border: 1px solid"></canvas>
+		<button id="btnStart" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);">
+			Start
+		</button>
+		<div id="endScreen" style="
+			width: 100%;
+			height: 100%;
+			background: rgba(255, 255, 255, 0.7);
+			display: none;
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		">
+			<h1>End!</h1>
+			<p>It took <span id="time"></span> millisecond for you to finish the game</p>
+		</div>
+	</div>
+</body>
+</html>
